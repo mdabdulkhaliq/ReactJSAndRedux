@@ -1,0 +1,159 @@
+*****************************************************************************
+React JS
+https://github.com/mschwarzmueller/reactjs-basics
+https://www.youtube.com/playlist?list=PL55RiY5tL51oyA8euSROLjMFZbXaV7skS
+*****************************************************************************
+Github Lesson: 01-Setup
+1. React JS is a Library for creating User Interfaces. 
+2. Angular is a JS Framework for building SPA.
+3. Webpack is used to bundle all our JS, CSS, and other stuff into a single code that can be referenced in our main page.
+4. Babel is a JavaScript transpiler that converts edge JavaScript ES6 into plain old ES5 JavaScript that can run in any browser.
+5. Create a project folder react-app and run
+        npm init
+6.  The package.json will hold all the dependencies for the app. react and react-dom are production dependencies
+        npm install react react-dom --save
+7. We need a development server to run the app and we cannot just open the index.html file directly in the browser. These are dev dependencies.
+        npm install webpack webpack-dev-server babel-loader babel-preset-es2015 babel-preset-react babel-preset-stage-2 --save-dev
+8. In the project folder create a folder structure 
+        react-app/src/index.html
+        react-app/src/app/index.js 
+        react-app/webpack.config.js (Github)
+9. In the index.html we dont import index.js because webpack will consolidate all the js/css etc into a file called as bundle.js based on webpack.config.js. So we import bundle.js using the script tag.
+10. Understand the webpack.config.js and package.json from github
+11. Node modules can be recreated using npm install. /dist will be re-created by webpack when building.
+
+Github Lesson: 02-FirstComponent 
+12. We need to import React and render from react and react-dom resp. 
+13. Create a class App extending React.Component. Everything should go under render(){} function inside the class.
+14. The render function should return a div. Everything should go under a root div tag. JSX is javascript with XML. Babel will convert this jsx to js.
+15. Create a div tag in the index.html tag with an id say app.
+16. Now we have to render the component inside the div tag on the index.html page.
+        render(<App/>,document.getElementById("app"));
+17. For style we need to use className in the react component.
+
+Github Lesson: 03-MultipleComponents 
+18. Create components folder in the app folder to store all components. We need to import render only in the component that we want to render.
+19. We need to export the classes of the components if we want to use it in other components.
+20. Add bootstrap to index.html and its code can be used in sub components as ultimately the components will be used in the main component and that will be added to bundle.js and imported in index.html
+21. To import a component in the main component written in index.js file
+        import { Header } from "./components/Header";
+        import { Home } from "./components/Home";
+and to use the component just the the tag with component name.
+        <Header />, <Home /> etc.
+
+Github Lesson: 04-Props 
+22. add dynamic content using {}. We can use conditional logic in the render function as it is javascript.
+        {2+2}, {contentVariable}
+23. To pass data(string, objects etc) from one component to another component we use props we need to enclose them in {}
+        user = { name: "Anna", hobbies: ["Cricket"]};
+        <Home name={"AbdulKhaliq"} age={27} user={user} />
+24. To access the props of a Component use this.props
+        {this.props.name}
+        {this.props.age}
+25. To loop through items/array in an object use the map function and an arrow function to which react automatically passes the element and the index
+        {this.props.user.hobbies.map(
+            (hobby,i) => <li key={i}>{hobby}</li> 
+        )}
+26. We can also print variables of that component using
+        {variableName}
+27. We can validate the props passed from one component to another component using propTypes. In the component class which receives the props 
+        Home.propTypes = {
+            name: React.PropTypes.string,
+            age: React.PropTypes.number,
+            user: React.PropTypes.object
+        }
+28. Instead of passing props we can also pass children elements
+        <Home>
+            <p>This is a paragraph</p>
+        </Home>
+Retrieve this in the receiving component as
+        {this.props.children}
+The type for it will be
+        children: React.PropTypes.element.isRequired;
+
+Github Lesson: 05-Events
+29. Props is also passed via the constructor to the receiving class. We should also call super(); first in the constructor.
+        constructor(props){
+            super();
+            this.age = props.age;
+        }
+30. When we specify functions for events we should not specify the () because makeMeOlder() will get called immediately as it is java script but we just need to provide a reference so we write it as so that it is called only when clicked.
+        onClick={this.makeOlder}
+We need to bind the calling object to the this keyworkd
+        onClick={this.makeOlder.bind(this)}
+or      onClick={()=>this.onMakeOlder()}
+31. React will not rerender the page until the state of the object changes.
+
+Github Lesson: 06-State
+32. Every component will have a state object and the react will rerender only when this state changes.
+        constructor(props){
+            super();
+            this.state = {
+                age: props.initialAge,
+                status: props.initialStatus
+            };
+        }
+33. To update the state of the Component we need to do
+        this.setState({age: this.state.age + 3});
+This will only change the age and keep the status unaffected.
+34. To access a state value
+        {this.state.age}
+35. React uses Virtual DOM which is a DOM written in JS as JS is really fast compared to normal DOM. Whatever we write in the render function though looks like html is java script jsx. Whenever the state changes react makes the changes to virtual dom and compare the virtual dom to actual dom and only changes those parts in the actual dom that requires changes instead of changing the whole original dom. That is why react js is really fast.
+36. For stateless components instead of creating a react class component we can create it as stateless function component. We need to write a arrow function to which props will be passed automatically. We dont need a render function.
+        export const Header = (props) => {
+            return (
+                    <div>props.homeLink</div>
+            );
+        }
+36. We saw passing data from parent component to child components. How to pass data from child components to parent components.? If a child component wants to call a parent components function, pass the reference of the parent function to the child function via props. We need to use bind(this) only when we use this keyword inside the function. We are passing name to child component similarly pass greet function reference which the child component can call back which is located in the parent component
+        <Home name={"max"} greet={this.onGreet} />
+In the child Home component 
+        <button onClick={this.props.greet}>Greet</button>
+validator will be 
+        greet: React.PropTypes.func;"
+This will call the greet method in the parent component.
+37. If we want to pass data, to the parent component. Pass a reference to the function to the child component.
+In the child component define a method with same name and call the parent function using props reference and pass the data that you want from child components state. 
+https://youtu.be/5Xew--ycx0o?list=PL55RiY5tL51oyA8euSROLjMFZbXaV7skS
+38. input type text by default will be read only unless we have a onChange event
+        <input type=text value={this.props.homeLink} onChange={(event) => this.onHandleChange(event)}
+39. Component Lifecycle methods. Also check Github code.
+        componentWillMount - Immediately before initial rendering
+        componentDidMount - Immediately after initial rendering
+        componentWillReceiveProps - When component receives new props
+        shouldComponentUpdate - Before rendering, after receiving new props or state
+        componentWillUpdate - Before rendering, after receiving new props or state
+        componentDidUpdate - After rendering update.
+        componentWillUnmount - Immediately before removing component from DOM.
+40. To setup the router.
+        npm install react-router --save
+41.     import {Router, Route, browserHistory} from "react-router";
+42. In the render method
+        <Router history={browserHistory}>
+            <Route path={"user"} component={User} />
+            <Route path={"home"} component={Home} />
+        </Router> 
+The above if called directly without calling the root page will not load headers because header is called only in root page. So fix that issue we load the root page and then the sub route. IndexRoute is same as /
+        <Router history={browserHistory}>
+            <Route path={"/"} component={Root} />
+                <IndexRoute component={Home}/>
+                <Route path={"user"} component={User} />
+                <Route path={"home"} component={Home} />
+            </Route>
+        </Router>
+    We also need to add --history-api-fallback option to the package.json in the build script option.
+43. To use the routes, use the Link tag
+        import {Link} from react-router;
+        <Link to={"/home"} activeStyle={{color: "red"}}>Home</Link>
+        <Link to={"/user"} activeClassName={"active"}>User</Link>
+44. In order to navigate from the click of a button in some component 
+        import { browserHistory } from react-router;
+        browserHistory.push("/home");
+45. Getting path parameters
+            <Route path={"/"} component={Root} />
+                <IndexRoute component={Home}/>
+                <Route path={"user/:id"} component={User} />
+                <Route path={"home"} component={Home} />
+            </Route>
+The value can be accessed using {this.props.params.id}
+There is a official github for react router with examples.

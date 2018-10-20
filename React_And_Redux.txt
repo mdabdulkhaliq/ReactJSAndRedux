@@ -1,0 +1,163 @@
+*******************
+ReactJS and Redux
+*******************
+Source: https://github.com/mschwarzmueller/reactjs-redux-basics
+https://www.youtube.com/playlist?list=PL55RiY5tL51rrC3sh8qLiYHqUV3twEYU_
+
+1. Child to Child Interaction should happen through parent in react js, which will have complexity as we need to pass props from parent to child1 and the child1 calls back the parent function and passes data to it. Parent will then pass this data to child2. Which can get complicated when there are many child component interactions. Hence Redux.
+2. Redux solves this problem. View/App will dispath and action. The action will be handled by Reducer(s) and it will copy the existing state to a new state and make changes on the new state. The new state is then saved in the Store state component. We can have multiple reducers but only one store state. Different components can subscribe to the store state, and whenever the state is changed the subscribed components will know it. A reducer will take an action and does something with the state. A reducer can handle multiple. actions. It should return a state.
+3. To add redux
+        npm install redux --save
+4.      import { createStore } from "redux";
+Create a reducer to which state and action will be passed automcatically. Based on the action type do something and return new state.
+        const mathReducer = (state, action) =>  {
+            switch(action.type){
+                case "ADD":
+                    state = state + action.payload;
+                    break;
+                case "SUBSTRACT":
+                    state = state - action.payload;
+                    break;
+            }
+            return state;
+        };
+5. The store will know which reducer will give a new state and which reducer is responsible for handling the actions. Create a store with reducer and initialstate=100 of type number
+        const store = createStore(reducer, 100);
+6. Components can subscribe to store, which has a callback function when the store state is updated.
+            store.subscribe(() => {
+                console.log("Store updated" + store.getState())
+            });
+7. The dispatch is called on store as it knows which reducer will handle actions and returns new state. The dispatch will need an object with all our variables and payload.
+            store.dispatch({
+               type: "ADD" ,
+               payload: 10
+            });
+
+            store.dispatch({
+               type: "SUBSTRACT" ,
+               payload: 10
+            });
+8. We generally use objects as state and not numbers so in order to use objects or arrays as state
+            const initialState = {
+                result: 1,
+                lastValues: []
+            };
+9. Specify the state as intialState as the default value if no state is passed.
+        const mathReducer = (state = initialState, action) =>  {
+            switch(action.type){
+                case "ADD":
+                    state = state + action.payload;
+                    break;
+                case "SUBSTRACT":
+                    state = state - action.payload;
+                    break;
+            }
+            return state;
+        };
+10. We dont pass any state here as we specified the intiiate State as the default value.
+        const store = createStore(reducer);
+11. Change the reducer as
+        const mathReducer = (state, action) =>  {
+            switch(action.type){
+                case "ADD":
+                    state.result = state.result + action.payload;
+                    break;
+                case "SUBSTRACT":
+                    state.result = state.result - action.payload;
+                    break;
+            }
+            return state;
+        };
+12. This is directly updating the existing state and we will not know what the previous state was so it is better to create a new state object same as old state and then do the updates on this new object. For copying all values from old state to new state use the spread operator ...state this will copy all elements from old state object.
+          const mathReducer = (state, action) =>  {
+            switch(action.type){
+                case "ADD":
+                    state = {
+                        ...state,
+                        result: state.result + action.payload,
+                        lastValues: [...lastValues, action.payload]
+                    };
+                    break;
+                case "SUBSTRACT":
+                        ...state,
+                        result: state.result - action.payload
+                        lastValues: [...lastValues, action.payload]
+            }
+            return state;
+        };      
+13. The result, lastValues will override the actual result and lastValues in the ...state.
+14. In order to use multiple reducers we need to import a new feature
+        import { createStore, combineReducers } from "redux";
+15. Create store can only accept one reducer, say now we have mathReducer and userReducer we create a combineReducers which accepts an object of all reducers
+        const store = createStore(combineReducers(
+            {
+                mathReducer: mathReducer, 
+                userReducer: userReducer
+            }));
+16. Since we are using same key and value we can re-write it as 
+        const store = createStore(combineReducers(
+            {
+                mathReducer, 
+                userReducer
+            }));
+17. When calling the dispatch we need not specify the type of reducer based on the action it will call the appropriate reducer. Hence the actions should be unique.
+18. The application or the components dispatches actions, the actions are handled by reducers, the reducers create the new state, and save it in the store, and store passes it back to the application.
+19. We can apply Middleware for redux to log actions etc. Custom middleware or logger for example.
+            import { createStore, combineReducers, applyMiddleware } from "redux";
+            const myLogger = (store) => (next) => (action) => {
+                console.log("Logged action", action);
+                next(action);
+            }
+            const store = createStore(combineReducers({mathReducer, userReducer}, {}, applyMiddleware(myLogger)));
+20. To use third party middleware
+            npm install redux-logger --save
+            import logger from redux-logger;
+            const store = createStore(combineReducers({mathReducer, userReducer}, {}, applyMiddleware(logger())));
+This will list the prev state, action and the new state.
+21. To connect ReactJS and Redux, we need a brige between react and redux
+            npm install react-redux --save
+22. We need not have this.state= {}; in the react now as state will be handled by redux. In the index.js have all the reducers and render the component that we want into the index.html via the Provider tag and pass it the store variable that we create with reducers, state and middleware. 
+            import { Provider } from react-redux;
+            render(<Provider store={store}>
+                        <App/>
+                    </Provider>,
+                    document.getElementById('app')
+                    );
+23. This will configure state at the app level. In order to get required properties of the state in a specific component, define the below in that component. The below example maps all properties of the user and the math to this component as properties. 
+Which properties of the global state should we map to the local props
+            const mapStateToProps = (state) => {
+                return {
+                    user: state.userReducer,
+                    math: state.mathReducer
+                };
+            };
+
+            const mapDispatchToProps = (dispatch) => {
+                return {
+                    addNumber: (num) => {
+                        dispatch({
+                            type: "ADD",
+                            payload: num
+                        });
+                    }
+                };
+            };
+24. To hookup the component and redux, we need to remove the export on the class level of the nameOfTheComponent
+            import { connect } from "react-redux";
+            export default connect(mapStateToProps, mapDispatchToProps)(nameOfTheComponent);
+25. If we use default export then we should not give {} when importing.
+            import nameOfTheComponent from "./components/nameOfTheComponent";
+26. To access a value  in the nameOfTheComponent
+            {this.props.user.name}
+Now in the nameOfTheComponent instead of calling a function we can call the setName from the mapDispatchToProps
+            {() => this.props.addNumber(10)}
+27. Components that are hooked to Redux and know the state are called as smart components and others that are not aware of the state are called as dumb components. We can directly use the React function component instead of class for these dumb components.
+28. Instead of having all the redux code in index.js create folders actions, reducers and store.js. Have the mathReducer.js and userReducer.js in the reducers folder and have the createStore logic in store.js with appropriate imports. We need to add the export default when moving these to other files for it to be used in other components. In the actions folder create mathActions.js and userActions.js
+28. For handling async actions we need to 
+            npm install redux-thunk --save
+            import thunk from "redux-thunk";
+Add this thunk in the applyMiddleware
+To use Promises in the actions.
+            npm install redux-promise-middleware
+            import promise from redux-promise-middleware
+Add this to the middleware. This will change the action and append it with _FULLFILLED.
